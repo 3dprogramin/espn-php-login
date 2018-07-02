@@ -1,36 +1,47 @@
-ESPN login
+ESPN PHP
 ----
 
-I tried few things and here's what I got to.
+The `ESPN.php` class will help you in logging into ESPN, using cURL and will scrape (do a `/GET` request) a URL, as authenticated user
 
-This is the request that's being done to login / send username and password, alogin with an `apikey` value
+**Example**
 
-![login request 1](http://i.imgur.com/fSZ1iU1.png)
+``` php
+require 'ESPN.php';
 
-The response is a JSON, which looks clearer like this:
+/** Save response to file
+ * @param $response
+ */
+function save_response($response){
+    $f = fopen('/home/icebox/Desktop/response.html', 'w');
+    fwrite($f, $response);
+    fclose($f);
+}
 
-![json response](http://i.imgur.com/fERuS0r.png)
+$username = 'mrockett@mail.com';
+$password = 'ESPN456!';
+$scrape_url = 'http://games.espn.com/ffl/clubhouse?leagueId=93772&teamId=1&seasonId=2018';
 
-The response contains a `token` object, which contains an `access_token`, `refresh_token` and some other interesting values and cookies.
-I'm pretty sure those are used later on to do requests, most likely also getting the content from the page you want to get it from.
+try {
+    $espn = new ESPN($username, $password); // initialize class with username and password
+    $espn->login();                         // do login (and set cookies right)
+    $resp = $espn->scrape($scrape_url);     // scrape url
+    save_response($resp);       // save to file to see it better in browser
+} catch (Exception $ex) {
+    die($ex->getMessage());
+}
+```
 
-From this, I can positively say that the site is mostlly pure JS. When this is the case, it's pretty hard to automate stuff, because they obfuscate things and you usually need a browser to interpret the JS right.
+**Observation**
 
-If you make a single GET request to the login URL (when you go to login page, before you actually login), this is what's returned:
+The class logs in, gets data such as `s2` and `swid` from response, and sets those as cookies, along with few others.
+Once the cookies are set, you can make requests to whatever link, and it will show you just as you were logged in.
 
-![login request GET](http://i.imgur.com/P3RxVGW.png)
+There is one variable which I gathered manually, and might change, once every week, month, etc, and that's the **APIKEY**,
+which is sent with the 1st request, the login request.
 
-Basically, site responds with very few text/bytes back, and it's pretty easy to even understand what they respond. The `brain` behind it is inside this script though: `https://cdn.registerdisney.go.com/v2/outer/DisneyID.js`
+As time passes, we'll know for sure if it's valid forever or not.
 
-Looks like they're using a 3rd party library or framework to handle everything in their site, including the API key.
-
-Talking about the API key because that's a value that's sent along with the username and password with the login. From my tests, if you reuse the same API key over and over, it still works, but not sure if it does for the next hour, next day or forever. So ye, it's probably an important piece of the puzzle at some point. Although, if this works for 1 week let's say, you can have an external bot that logs into browser, and get the APIKEY from there and forward it to a DB for the requests bot / server to use it.
-
-Here's how the 3rd party JS file looks like:
-![3rd party lib](http://i.imgur.com/tLD0fEB.png)
-
-Shows that the APIKEY is created from that file, but it's minified and obfuscated, to make it harder to read.
-
-That's what I was able to find out.
-
-Would be interesting to see what has been done until now or before to do the login.
+In the ESPN.php class it's defined like this:
+```
+define('API_KEY', '9/+y/6ojBxE/71zfuUxFdT0vtu4ULsxNPrF790O/9u/X+N6OCr0bThlcTBZUpODfDZU3wVP9mWj3psTKbdvzxQht0IbA');
+```
