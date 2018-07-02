@@ -3,7 +3,7 @@
 define('LOGIN_URL', 'https://ha.registerdisney.go.com/jgc/v6/client/ESPN-ONESITE.WEB-PROD/guest/login?langPref=en-US');
 define('USER_AGENT', 'Mozilla/5.0 (X11; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0');
 
-define('DEBUG', TRUE);
+define('DEBUG', FALSE);
 
 // not sure how this values are generated, but they seem to be working over HOURS now
 define('API_KEY', '9/+y/6ojBxE/71zfuUxFdT0vtu4ULsxNPrF790O/9u/X+N6OCr0bThlcTBZUpODfDZU3wVP9mWj3psTKbdvzxQht0IbA');
@@ -98,7 +98,7 @@ class ESPN
              */
             $this->_auth_response = json_decode($content, TRUE);
             $this->construct_cookies();
-        } else throw new Exception('not logged in');      // throws Exception if not logged in
+        } else throw new Exception('not logged in, response: ' . $content);      // throws Exception if not logged in
 
     }
 
